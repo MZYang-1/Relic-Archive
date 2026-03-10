@@ -2,12 +2,25 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import sqlite3
 
-# Prefer env var for production; fallback to local sqlite file
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./relic_archive.db")
 
-# Some distro Python builds ship an older pysqlite that does not support
-# 'check_same_thread' or newer connect() kwargs. We try a safe fallback.
+# Global monkey patch for old pysqlite create_function signature
+_patched_cf = getattr(sqlite3, "_ra_cf_patched", False)
+if not _patched_cf and hasattr(sqlite3, "Connection") and hasattr(sqlite3.Connection, "create_function"):
+    _orig_cf = sqlite3.Connection.create_function
+    def _wrapped_cf(self, name, num_params, func, *args, **kwargs):
+        try:
+            return _orig_cf(self, name, num_params, func, *args, **kwargs)
+        except TypeError:
+            return _orig_cf(self, name, num_params, func)
+    try:
+        sqlite3.Connection.create_function = _wrapped_cf
+        setattr(sqlite3, "_ra_cf_patched", True)
+    except Exception:
+        pass
+
 def _build_engine(url: str):
     if url.startswith("sqlite"):
         try:
