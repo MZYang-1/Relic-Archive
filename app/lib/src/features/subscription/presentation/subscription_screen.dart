@@ -14,11 +14,13 @@ class SubscriptionScreen extends StatefulWidget {
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   static const Set<String> _productIds = {
-    'relic_archive_premium_monthly',
-    'relic_archive_premium_yearly',
+    'relic_archive_premium_monthly_v2',
+    'relic_archive_premium_yearly_v2',
   };
 
-  static final Uri _privacyPolicyUrl = Uri.parse('https://example.com/privacy');
+  static final Uri _privacyPolicyUrl = Uri.parse(
+    'https://relicarchive.app/privacy',
+  );
   static final Uri _termsUrl = Uri.parse(
     'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
   );
@@ -78,8 +80,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     '请检查：\n'
                     '1) Xcode -> Runner -> Signing & Capabilities 已添加 In-App Purchase\n'
                     '2) App Store Connect 已创建订阅商品 ID：\n'
-                    '   - relic_archive_premium_monthly\n'
-                    '   - relic_archive_premium_yearly\n'
+                    '   - relic_archive_premium_monthly_v2\n'
+                    '   - relic_archive_premium_yearly_v2\n'
                     '3) 真机可访问 App Store（网络正常）\n'
                     '4) 若要测试购买，请在系统设置里登录 Sandbox 测试账号\n'
                     '${kDebugMode ? '\n原始错误: $err' : ''}'
@@ -136,9 +138,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Future<void> _open(Uri url) async {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开链接')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('无法打开链接')));
     }
   }
 
@@ -155,9 +157,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           p.status == PurchaseStatus.restored) {
         if (mounted) {
           setState(() => _purchaseInFlight = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('购买/恢复成功')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('购买/恢复成功')));
         }
       } else if (p.status == PurchaseStatus.canceled) {
         if (mounted) setState(() => _purchaseInFlight = false);
@@ -200,13 +202,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ] else if (_error != null) ...[
             Text(_error!, style: TextStyle(color: cs.error)),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _init,
-              child: const Text('重试'),
-            ),
+            ElevatedButton(onPressed: _init, child: const Text('重试')),
           ] else ...[
-            if (!_available)
-              Text('内购不可用', style: TextStyle(color: cs.error)),
+            if (!_available) Text('内购不可用', style: TextStyle(color: cs.error)),
             for (final p in _products)
               Card(
                 child: ListTile(

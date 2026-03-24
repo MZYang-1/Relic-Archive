@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Body, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
@@ -188,6 +189,10 @@ upload_dir = base_dir / "uploads"
 upload_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
+public_dir = base_dir / "public"
+public_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/public", StaticFiles(directory=str(public_dir), html=True), name="public")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -206,6 +211,14 @@ def get_db():
 @app.get("/")
 async def root():
     return {"message": "Welcome to Relic Archive API"}
+
+@app.get("/privacy")
+def privacy_redirect():
+    return RedirectResponse(url="/public/privacy.html")
+
+@app.get("/support")
+def support_redirect():
+    return RedirectResponse(url="/public/support.html")
 
 @app.get("/health")
 async def health_check():

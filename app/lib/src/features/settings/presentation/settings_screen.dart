@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -9,6 +10,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const String _icpNumber = '京ICP备2026012643号';
+  static final Uri _icpUrl = Uri.parse('https://beian.miit.gov.cn/');
+
   bool _requireUnlock = true;
   bool _loading = true;
 
@@ -49,6 +53,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('进入“我的收藏馆”前要求生物识别解锁'),
                   value: _requireUnlock,
                   onChanged: _save,
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.verified_outlined),
+                  title: const Text('ICP备案号'),
+                  subtitle: const Text(_icpNumber),
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    if (!await launchUrl(
+                      _icpUrl,
+                      mode: LaunchMode.externalApplication,
+                    )) {
+                      messenger?.showSnackBar(
+                        const SnackBar(content: Text('无法打开链接')),
+                      );
+                    }
+                  },
                 ),
                 const Divider(),
                 ListTile(
